@@ -227,14 +227,6 @@ jobs:
             cd ./KernelSU
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
             patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
-            
-            if [ "${{ inputs.include_susfs }}" = "true" ]; then
-              echo "Applying MKSU specific SUSFS patch..."
-              cp ../../kernel_patches/mksu/mksu_susfs.patch ../KernelSU/
-              patch -p1 --fuzz=3 < mksu_susfs.patch
-              cp ../../kernel_patches/mksu/fix.patch ../KernelSU/
-              patch -p1 --fuzz=3 < fix.patch
-            fi
           else
             echo "Invalid KernelSU variant selected!"
             exit 1
