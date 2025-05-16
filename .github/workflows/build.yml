@@ -132,7 +132,7 @@ jobs:
         run: |
           echo "Cloning AnyKernel3 and other dependencies..."
           
-          ANYKERNEL_BRANCH="gki-2.0"
+          ANYKERNEL_BRANCH="gki"
           SUSFS_BRANCH="gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}"
           
           # Debug print the branches
@@ -393,29 +393,16 @@ jobs:
           # Create gzip of the Image file
           gzip -n -k -f -9 ./Image > ./Image.gz
 
-      - name: Create ZIP Files for Different Formats
+      - name: Create AnyKernel ZIPs
         run: |
-          echo "Creating zip files for all formats..."
           cd ./AnyKernel3
-          
-          # Create and upload zip for each format
+          rm -rf .git/
+
           ZIP_NAME="${{ inputs.kernelsu_variant }}_${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3.zip"
           echo "Creating zip file: $ZIP_NAME..."
           mv ../Image ./Image
           zip -r "../$ZIP_NAME" ./*
           rm ./Image
-          
-          ZIP_NAME="${{ inputs.kernelsu_variant }}_${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3-lz4.zip"
-          echo "Creating zip file: $ZIP_NAME..."
-          mv ../Image.lz4 ./Image.lz4
-          zip -r "../$ZIP_NAME" ./*
-          rm ./Image.lz4
-          
-          ZIP_NAME="${{ inputs.kernelsu_variant }}_${{ inputs.android_version }}-${{ inputs.kernel_version }}.${{ inputs.sub_level }}-${{ inputs.os_patch_level }}-AnyKernel3-gz.zip"
-          echo "Creating zip file: $ZIP_NAME..."
-          mv ../Image.gz ./Image.gz
-          zip -r "../$ZIP_NAME" ./*
-          rm ./Image.gz
 
       - name: Android 12 boot image build script
         if: ${{ inputs.android_version == 'android12' }}
