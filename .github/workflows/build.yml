@@ -235,18 +235,6 @@ jobs:
           cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
-      - name: Add All Managers
-        if: ${{ inputs.kernelsu_variant == 'KSU' }}
-        run: |
-          cd "$CONFIG/KernelSU"
-            if [ "${{ inputs.include_susfs }}" = "true" ]; then
-            cp ../../kernel_patches/apk_sign.c_fix.patch ./
-            patch -p1 --fuzz=3 < apk_sign.c_fix.patch
-          else
-            cp ../../kernel_patches/no-susfs_apk_sign.c_fix.patch ./
-            patch -p1 --fuzz=3 < no-susfs_apk_sign.c_fix.patch
-          fi
-
       - name: Apply Hooks Patches
         run: |
           echo "Changing to configuration directory: $CONFIG..."
