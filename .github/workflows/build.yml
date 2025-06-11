@@ -190,7 +190,7 @@ jobs:
           
           if [[ "${{ inputs.kernelsu_variant }}" == "KSU" ]]; then
             echo "Adding KernelSU Official..."
-            curl -LSs "https://github.com/backslashxx/KernelSU/blob/magic/kernel/setup.sh" | bash ${{ env.BRANCH }}
+            curl -LSs "https://raw.githubusercontent.com/backslashxx/KernelSU/refs/heads/magic/kernel/setup.sh" | bash ${{ env.BRANCH }}
           elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
             echo "Adding KernelSU Next..."
             curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
