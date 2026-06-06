@@ -322,6 +322,9 @@ jobs:
       
               echo "$line" >> "$DEFCONFIG"
           done < "$EDITS"
+          
+          # Remove check_defconfig
+          sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: Add Configuration Settings
         if: ${{ inputs.kernelsu_variant == 'disabled' }}
