@@ -303,8 +303,6 @@ jobs:
 
       - name: Apply DroidSpaces kernel configs
         run: |
-          ls ../$CONFIG
-          echo ---
           cd "$CONFIG"
           ls
           
