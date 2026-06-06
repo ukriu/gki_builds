@@ -275,7 +275,57 @@ jobs:
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < 69_hide_stuff.patch
 
+      - name: Apply DroidSpaces GKI patches
+        shell: bash
+        run: |
+          cd $CONFIG/common
+          case "${{ inputs.kernel_version }}" in
+            5.4|5.10)
+              curl -LO https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+              curl -LO https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch
+      
+              patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+              patch -p1 < 002.5.10_or_lower_use_android_abi_padding_for_posix_mqueue.patch
+              ;;
+      
+            5.15|6.1|6.6)
+              curl -LO https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+      
+              patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+              ;;
+      
+            6.12)
+              curl -LO https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/kernel-6.12/001.GKI-6.12-or-above-fix_sysvipc_kabi.patch
+      
+              patch -p1 < 001.GKI-6.12-or-above-fix_sysvipc_kabi.patch
+              ;;
+          esac
+
+      - name: Apply DroidSpaces kernel configs
+        run: |
+          ls ../$CONFIG
+          echo ---
+          cd "$CONFIG"
+          ls
+          
+          DEFCONFIG="./common/arch/arm64/configs/gki_defconfig"
+          EDITS="../defconfig_edits.txt"
+      
+          while IFS= read -r line; do
+              [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+      
+              key="${line%%=*}"
+      
+              sed -i \
+                  -e "/^${key}=.*/d" \
+                  -e "/^# ${key} is not set$/d" \
+                  "$DEFCONFIG"
+      
+              echo "$line" >> "$DEFCONFIG"
+          done < "$EDITS"
+
       - name: Add Configuration Settings
+        if: ${{ inputs.kernelsu_variant == 'disabled' }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
@@ -283,10 +333,6 @@ jobs:
           
           # Add KSU configuration settings
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          if [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
-            echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
-          fi
           
           # Add additional tmpfs config setting
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -361,7 +407,7 @@ jobs:
           cd "$CONFIG"
           echo "Building the kernel..."
           if [ -f "build/build.sh" ]; then
-            LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
+            LTO=full BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh CC="/usr/bin/ccache clang" || exit 1
           else
             tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast --lto=thin //common:kernel_aarch64_dist || exit 1
           fi
