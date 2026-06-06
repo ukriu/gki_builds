@@ -236,7 +236,7 @@ jobs:
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
       - name: Add All Managers
-        if: ${{ inputs.kernelsu_variant == 'KSU' }}
+        if: ${{ inputs.kernelsu_variant == 'disabled' }}
         run: |
           cd "$CONFIG/KernelSU"
             if [ "${{ inputs.include_susfs }}" = "true" ]; then
@@ -248,6 +248,7 @@ jobs:
           fi
 
       - name: Apply New Hooks Patches
+        if: ${{ inputs.kernelsu_variant == 'disabled' }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/common"
@@ -267,6 +268,7 @@ jobs:
           fi
 
       - name: Apply Hide Stuff Patches
+        if: ${{ inputs.kernelsu_variant == 'disabled' }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/common"
@@ -307,7 +309,7 @@ jobs:
           sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: Add SUSFS Configuration Settings
-        if: ${{ inputs.include_susfs == false }}
+        if: ${{ inputs.include_susfs == true }}
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"

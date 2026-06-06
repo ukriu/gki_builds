@@ -27,16 +27,6 @@ on:
         required: true
         type: boolean
         default: true
-      include_mksu:
-        description: 'Include MKSU?'
-        required: true
-        type: boolean
-        default: true
-      include_ksu_next:
-        description: 'Include KSU_NEXT?'
-        required: true
-        type: boolean
-        default: true
       kernelsu_branch:
         description: "Choose ksu branch"
         required: true
@@ -62,8 +52,8 @@ jobs:
         run: |
           VARIANTS=()
           [[ "${{ inputs.include_ksu }}" == "true" ]] && VARIANTS+=("\"KSU\"")
-          [[ "${{ inputs.include_ksu_next }}" == "true" ]] && VARIANTS+=("\"KSU_NEXT\"")
-          [[ "${{ inputs.include_mksu }}" == "true" ]] && VARIANTS+=("\"MKSU\"")
+          # [[ "${{ inputs.include_ksu_next }}" == "true" ]] && VARIANTS+=("\"KSU_NEXT\"")
+          # [[ "${{ inputs.include_mksu }}" == "true" ]] && VARIANTS+=("\"MKSU\"")
           echo "matrix={\"kernelsu_variant\": [$(IFS=,; echo "${VARIANTS[*]}")]}" >> $GITHUB_OUTPUT
 
   build-kernels-a12:
@@ -208,7 +198,7 @@ jobs:
       - name: Set release body
         run: |
           cat << 'EOF' > release_body.md
-          These kernels are prebuilt with Offical KernelSU/MKSU/KernelSU-Next and with SUSFS.
+          These kernels are prebuilt with Offical KernelSU and with SUSFS.
       
           **SUSFS Present: ${{ inputs.include_susfs }}**
           Branch type for KSU: ${{ inputs.kernelsu_branch }}

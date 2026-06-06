@@ -17,16 +17,6 @@ on:
         required: true
         type: boolean
         default: true
-      include_mksu:
-        description: 'Include MKSU?'
-        required: true
-        type: boolean
-        default: true
-      include_ksu_next:
-        description: 'Include KSU_NEXT?'
-        required: true
-        type: boolean
-        default: true
       kernelsu_branch:
         description: "Choose ksu branch"
         required: true
