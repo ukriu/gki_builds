@@ -57,6 +57,9 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
 
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
       - name: Set CONFIG Environment Variable
         run: |
           # Set CONFIG dynamically based on inputs values
@@ -304,10 +307,8 @@ jobs:
       - name: Apply DroidSpaces kernel configs
         run: |
           cd "$CONFIG"
-          ls
-          
           DEFCONFIG="./common/arch/arm64/configs/gki_defconfig"
-          EDITS="../defconfig_edits.txt"
+          EDITS="$GITHUB_WORKSPACE/defconfig_edits.txt"
       
           while IFS= read -r line; do
               [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
