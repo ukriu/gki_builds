@@ -167,17 +167,15 @@ jobs:
         run: |
           if [[ "${{ inputs.kernelsu_branch }}" == "Stable" ]]; then
               echo "BRANCH=-" >> $GITHUB_ENV
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev" && ( "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" == "MKSU" ) ]]; then
+          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev" && "${{ inputs.kernelsu_variant }}" == "KSU" ]]; then
               echo "BRANCH=-s main" >> $GITHUB_ENV
-          elif [[ "${{ inputs.kernelsu_branch }}" == "Dev" && "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-              echo "BRANCH=-s next" >> $GITHUB_ENV
           elif [[ "${{ inputs.kernelsu_branch }}" == "Other" && -n "${{ inputs.kernelsu_branch_other }}" ]]; then
             echo "BRANCH=-s ${{ inputs.kernelsu_branch_other }}" >> $GITHUB_ENV
           else
             echo "Error: Custom branch not provided for 'Other'" >&2
             exit 1
           fi
-      
+
       - name: Add KernelSU
         run: |
           echo "Changing to configuration directory: $CONFIG..."
@@ -185,13 +183,11 @@ jobs:
           
           if [[ "${{ inputs.kernelsu_variant }}" == "KSU" ]]; then
             echo "Adding KernelSU Official..."
-            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-            echo "Adding KernelSU Next..."
-            curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash ${{ env.BRANCH }}
-          elif [[ "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
-            echo "Adding KernelSU MKSU..."
-            curl -LSs "https://raw.githubusercontent.com/5ec1cff/KernelSU/main/kernel/setup.sh" | bash ${{ env.BRANCH }}
+            if [[ "${{ inputs.kernelsu_branch }}" == "Dev" ]]; then
+              curl -LSs https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash -s 8421ad5f1553cb40da7e1f84b5ec2832dd4feff2
+            else
+              curl -LSs https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash ${{ env.BRANCH }}
+            fi
           fi
 
       - name: Apply SUSFS Patches for KernelSU Variants
