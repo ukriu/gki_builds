@@ -46,16 +46,26 @@ jobs:
       CCACHE_HARDLINK: "true"
 
     steps:
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+      - name: Free Disk Space
+        if: true
+        uses: endersonmenezes/free-disk-space@v3
         with:
-          root-reserve-mb: 8192
-          temp-reserve-mb: 2048
-          swap-size-mb: 8000
-          remove-dotnet: "true"
-          remove-android: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_packages: "azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox postgresql* temurin-* *llvm* mysql* dotnet-sdk-*"
+          remove_packages_one_command: true
+          remove_folders: "/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle"
+          rm_cmd: "rmz"
+          rmz_version: "3.1.1"
+          testing: false
+
+      - name: Setup more Swap (for LTO)
+        uses: thejerrybao/setup-swap-space@v1
+        with:
+          swap-size-gb: 16
+          #swap-space-path: /mnt/swapfile
 
       - name: Checkout
         uses: actions/checkout@v6.0.3
@@ -128,7 +138,6 @@ jobs:
           # Clone repositories using the branch names
           git clone https://github.com/ukriu/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
-          git clone https://github.com/ukriu/kernel_patches.git
 
       - name: Initialize and Sync Kernel Source
         run: |
@@ -203,16 +212,6 @@ jobs:
             cd ./KernelSU
             cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
             patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch
-          elif [[ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]]; then
-            echo "Applying SUSFS patches for KernelSU-Next..."
-            cd ./KernelSU-Next
-            cp ../../kernel_patches/next/kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch ./
-            patch -p1 --forward --fuzz=3 < kernel-patch-susfs-v1.5.7-to-KernelSU-Next.patch || true
-          elif [[ "${{ inputs.kernelsu_variant }}" == "MKSU" ]]; then
-            echo "Applying SUSFS patches for MKSU..."
-            cd ./KernelSU
-            cp ../../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./
-            patch -p1 --forward --fuzz=3 < 10_enable_susfs_for_ksu.patch || true
           else
             echo "Invalid KernelSU variant selected!"
             exit 1
@@ -220,46 +219,6 @@ jobs:
           
           cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
-
-      - name: Add All Managers
-        if: ${{ inputs.kernelsu_variant == 'disabled' }}
-        run: |
-          cd "$CONFIG/KernelSU"
-            if [ "${{ inputs.include_susfs }}" = "true" ]; then
-            cp ../../kernel_patches/apk_sign.c_fix.patch ./
-            patch -p1 --fuzz=3 < apk_sign.c_fix.patch
-          else
-            cp ../../kernel_patches/no-susfs_apk_sign.c_fix.patch ./
-            patch -p1 --fuzz=3 < no-susfs_apk_sign.c_fix.patch
-          fi
-
-      - name: Apply New Hooks Patches
-        if: ${{ inputs.kernelsu_variant == 'disabled' }}
-        run: |
-          echo "Changing to configuration directory: $CONFIG..."
-          cd "$CONFIG/common"
-          
-          #if [ "${{ inputs.kernelsu_variant }}" == "KSU" || "${{ inputs.kernelsu_variant }}" ]; then
-          #  echo "Applying hooks for Official KernelSU..."
-          #  cp ../../kernel_patches/hooks/ksu_hooks.patch ./
-          #  patch -p1 -F 3 < ksu_hooks.patch
-          if [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
-            echo "Applying hooks for KernelSU-Next..."
-            cp ../../kernel_patches/next/syscall_hooks.patch ./
-            patch -p1 -F 3 < syscall_hooks.patch
-          #elif [ "${{ inputs.kernelsu_variant }}" == "MKSU" ]; then
-          #  echo "Applying hooks for MKSU..."
-          #  cp ../../kernel_patches/hooks/ksu_hooks.patch ./
-          #  patch -p1 -F 3 < ksu_hooks.patch
-          fi
-
-      - name: Apply Hide Stuff Patches
-        if: ${{ inputs.kernelsu_variant == 'disabled' }}
-        run: |
-          echo "Changing to configuration directory: $CONFIG..."
-          cd "$CONFIG/common"
-          cp ../../kernel_patches/69_hide_stuff.patch ./
-          patch -p1 -F 3 < 69_hide_stuff.patch
 
       - name: Apply DroidSpaces GKI patches
         shell: bash
@@ -342,47 +301,62 @@ jobs:
       - name: Add SUSFS Configuration Settings
         if: ${{ inputs.include_susfs == true }}
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
-          
-          # Add SUSFS configuration settings
-          echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          if [ "${{ inputs.kernelsu_variant }}" == "KSU_NEXT" ]; then
-            echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
+          DEFCONFIG="./common/arch/arm64/configs/gki_defconfig"
+          EDITS="$GITHUB_WORKSPACE/susfs_defconfig_edits.txt"
+      
+          while IFS= read -r line; do
+              [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+      
+              key="${line%%=*}"
+      
+              sed -i \
+                  -e "/^${key}=.*/d" \
+                  -e "/^# ${key} is not set$/d" \
+                  "$DEFCONFIG"
+      
+              echo "$line" >> "$DEFCONFIG"
+          done < "$EDITS"
+
+      - name: Set Build Timestamp from Kernel Commit
+        shell: bash
+        run: |
+          set -x
+          # Hardcode the build timestamp to the 5th day of the patch level
+          # at 04:20 UTC, using the existing timestamp formats expected by the build.
+          OS_PATCH_LEVEL_INPUT="${{ inputs.os_patch_level }}"
+          if [[ "$OS_PATCH_LEVEL_INPUT" == lts* ]]; then
+            if [[ "$OS_PATCH_LEVEL_INPUT" =~ ^lts-([0-9]{2})$ ]]; then
+              OS_PATCH_LEVEL_YM="$(date -u +%Y)-${BASH_REMATCH[1]}"
+            else
+              OS_PATCH_LEVEL_YM="$(date -u +%Y-%m)"
+            fi
           else
-            echo "CONFIG_KSU_SUSFS_SUS_SU=y" >> ./common/arch/arm64/configs/gki_defconfig
+            OS_PATCH_LEVEL_YM="$OS_PATCH_LEVEL_INPUT"
           fi
+          FIXED_BUILD_DATE="${OS_PATCH_LEVEL_YM}-05 12:10:00 UTC"
+          SOURCE_DATE_EPOCH=$(date -u -d "$FIXED_BUILD_DATE" +%s)
+          echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH" >> $GITHUB_ENV
+          KBUILD_TS=$(date -u -d @${SOURCE_DATE_EPOCH} '+%a %b %d %H:%M:%S UTC %Y')
+          echo "KBUILD_BUILD_TIMESTAMP=${KBUILD_TS}" >> $GITHUB_ENV
+          # Keep git metadata aligned with the same fixed timestamp.
+          GIT_DATE=$(date -u -d @${SOURCE_DATE_EPOCH} '+%Y-%m-%dT%H:%M:%SZ')
+          echo "GIT_COMMITTER_DATE=${GIT_DATE}" >> $GITHUB_ENV
+          echo "GIT_AUTHOR_DATE=${GIT_DATE}" >> $GITHUB_ENV
+          echo "Build timestamp set to: $(date -u -d @${SOURCE_DATE_EPOCH} '+%Y-%m-%d %H:%M:%S UTC') (epoch: $SOURCE_DATE_EPOCH)"
 
       - name: Change Kernel Name
         run: |
           cd "$CONFIG"
           
-          # modify UTS_VERSION
-          perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sat Apr 20 04:20:00 UTC 2024"}' ./common/scripts/mkcompile_h
-          
-          sed -i '$s|echo "\$res"|echo "\$res-🍻-blehSU-🍻"|' ./common/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "\$res-blehSU"|' ./common/scripts/setlocalversion
           if [ -f "build/build.sh" ]; then
             sed -i 's/-dirty//' ./common/scripts/setlocalversion
           else
             sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' ./common/BUILD.bazel
             rm -rf ./common/android/abi_gki_protected_exports_*
             sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl
-            sed -E -i '/^CONFIG_LOCALVERSION=/ s/(.*)"$/\1-🍻-blehSU-🍻"/' ./common/arch/arm64/configs/gki_defconfig
+            sed -E -i '/^CONFIG_LOCALVERSION=/ s/(.*)"$/\1-blehSU"/' ./common/arch/arm64/configs/gki_defconfig
           fi
 
       - name: Build
@@ -517,7 +491,7 @@ jobs:
           done
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ${{ inputs.kernelsu_variant }}_kernel-${{ env.CONFIG }}
           path: |
