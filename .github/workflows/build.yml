@@ -254,14 +254,13 @@ jobs:
       
           while IFS= read -r line; do
               [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-      
+              
               key="${line%%=*}"
-      
+              echo $key
               sed -i \
                   -e "/^${key}=.*/d" \
                   -e "/^# ${key} is not set$/d" \
                   "$DEFCONFIG"
-      
               echo "$line" >> "$DEFCONFIG"
           done < "$EDITS"
           
@@ -304,17 +303,16 @@ jobs:
           cd "$CONFIG"
           DEFCONFIG="./common/arch/arm64/configs/gki_defconfig"
           EDITS="$GITHUB_WORKSPACE/susfs_defconfig_edits.txt"
-      
+          
           while IFS= read -r line; do
               [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-      
+              
               key="${line%%=*}"
-      
+              echo $key
               sed -i \
                   -e "/^${key}=.*/d" \
                   -e "/^# ${key} is not set$/d" \
                   "$DEFCONFIG"
-      
               echo "$line" >> "$DEFCONFIG"
           done < "$EDITS"
 
