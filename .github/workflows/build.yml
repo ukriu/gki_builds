@@ -183,11 +183,7 @@ jobs:
           
           if [[ "${{ inputs.kernelsu_variant }}" == "KSU" ]]; then
             echo "Adding KernelSU Official..."
-            if [[ "${{ inputs.kernelsu_branch }}" == "Dev" ]]; then
-              curl -LSs https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash -s 64fb0888f9262e5339e578b773032f2b0753b526
-            else
-              curl -LSs https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash ${{ env.BRANCH }}
-            fi
+            curl -LSs https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh | bash ${{ env.BRANCH }}
           fi
 
       - name: Apply SUSFS Patches for KernelSU Variants
