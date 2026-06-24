@@ -129,7 +129,7 @@ jobs:
       - build-kernels-a13
       - build-kernels-a14
       - build-kernels-a15
-      - build-kernels-a16
+      #- build-kernels-a16
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_NAME: "GKI Prebuilt Release"
