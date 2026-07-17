@@ -194,6 +194,7 @@ jobs:
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
+          sed -i -e '/security_dump_masked_av_fn/s/^extern void/extern __weak void/' -e '/context_struct_compute_av_fn/s/^extern void/extern __weak void/' ./kernel/feature/selinux_hide.c
           
           echo "Applying SUSFS patches..."
           
@@ -214,8 +215,6 @@ jobs:
           
           cd ../common
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
-          
-          sed -i -e '/security_dump_masked_av_fn/s/^extern void/extern __weak void/' -e '/context_struct_compute_av_fn/s/^extern void/extern __weak void/' ./kernel/feature/selinux_hide.c
 
       - name: Apply DroidSpaces GKI patches
         if: ${{ inputs.include_ds == true }}
