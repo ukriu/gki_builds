@@ -12,6 +12,11 @@ on:
         required: true
         type: boolean
         default: true
+      include_ds:
+        description: 'Include DroidSpaces?'
+        required: true
+        type: boolean
+        default: true
       include_ksu:
         description: 'Include KSU?'
         required: true
@@ -80,6 +85,7 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       include_susfs: ${{ inputs.include_susfs }}
+      include_ds: ${{ inputs.include_ds }}
       android_version: ${{ matrix.android_version }}
       kernel_version: ${{ matrix.kernel_version }}
       revision: ${{ matrix.revision || '' }}

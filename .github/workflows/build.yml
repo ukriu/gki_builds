@@ -12,6 +12,9 @@ on:
       include_susfs:
         required: true
         type: boolean
+      include_ds:
+        required: true
+        type: boolean
       android_version:
         required: true
         type: string
@@ -213,6 +216,7 @@ jobs:
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
       - name: Apply DroidSpaces GKI patches
+        if: ${{ inputs.include_ds == true }}
         shell: bash
         run: |
           cd $CONFIG/common
@@ -239,6 +243,7 @@ jobs:
           esac
 
       - name: Apply DroidSpaces kernel configs
+        if: ${{ inputs.include_ds == true }}
         run: |
           cd "$CONFIG"
           DEFCONFIG="./common/arch/arm64/configs/gki_defconfig"

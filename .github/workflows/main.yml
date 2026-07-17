@@ -27,6 +27,11 @@ on:
         required: true
         type: boolean
         default: true
+      include_ds:
+        description: 'Include DroidSpaces?'
+        required: true
+        type: boolean
+        default: true
       kernelsu_branch:
         description: "Choose ksu branch"
         required: true
@@ -68,6 +73,7 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       include_susfs: ${{ inputs.include_susfs }}
+      include_ds: ${{ inputs.include_ds }}
 
   build-kernels-a13:
     needs: set-matrix
@@ -81,6 +87,7 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       include_susfs: ${{ inputs.include_susfs }}
+      include_ds: ${{ inputs.include_ds }}
 
   build-kernels-a14:
     needs: set-matrix
@@ -94,6 +101,7 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       include_susfs: ${{ inputs.include_susfs }}
+      include_ds: ${{ inputs.include_ds }}
 
   build-kernels-a15:
     needs: set-matrix
@@ -107,6 +115,7 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       include_susfs: ${{ inputs.include_susfs }}
+      include_ds: ${{ inputs.include_ds }}
 
   build-kernels-a16:
     needs: set-matrix
@@ -120,6 +129,7 @@ jobs:
       kernelsu_branch: ${{ inputs.kernelsu_branch }}
       kernelsu_branch_other: ${{ inputs.kernelsu_branch_other }}
       include_susfs: ${{ inputs.include_susfs }}
+      include_ds: ${{ inputs.include_ds }}
 
   release:
     runs-on: ubuntu-latest
