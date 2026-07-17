@@ -216,7 +216,6 @@ jobs:
           patch -p1 --fuzz=3 < 50_add_susfs_in_gki-${{ inputs.android_version }}-${{ inputs.kernel_version }}.patch || true
 
           #test patch
-          cd $CONFIG/common
           git apply $GITHUB_WORKSPACE/fix_kbuild_selinux.patch
 
       - name: Apply DroidSpaces GKI patches
