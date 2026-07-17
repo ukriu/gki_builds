@@ -315,7 +315,7 @@ jobs:
           cd "$CONFIG"
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          #sed -i '/name = "kernel_aarch64",/a\    check_defconfig = "disabled",' common/BUILD.bazel
+          sed -i '/name = "kernel_aarch64",/a\    check_defconfig = "disabled",' common/BUILD.bazel
 
       - name: Set Build Timestamp from Kernel Commit
         shell: bash
