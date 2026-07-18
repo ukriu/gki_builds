@@ -194,7 +194,19 @@ jobs:
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
-          sed -i -e '/security_dump_masked_av_fn/s/^extern void/extern __weak void/' -e '/context_struct_compute_av_fn/s/^extern void/extern __weak void/' ./common/kernel/feature/selinux_hide.c
+          pwd
+          ls
+          echo ------------------
+          ls *
+          echo ------------------
+          echo ------------------
+          echo ------------------
+          echo ------------------
+          echo ------------------
+          echo ------------------
+          echo ------------------
+          ls */*
+          sed -i -e '/security_dump_masked_av_fn/s/^extern void/extern __weak void/' -e '/context_struct_compute_av_fn/s/^extern void/extern __weak void/' ./kernel/feature/selinux_hide.c
           
           echo "Applying SUSFS patches..."
           
