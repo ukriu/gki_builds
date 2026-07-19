@@ -188,6 +188,11 @@ jobs:
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
 
+          sed -i \
+            -e 's/if (security_dump_masked_av_fn)/if (\&security_dump_masked_av_fn)/g' \
+            -e 's/if (context_struct_compute_av_fn)/if (\&context_struct_compute_av_fn)/g' \
+            ./common/drivers/kernelsu/feature/selinux_hide.c
+
           echo "Applying SUSFS patches..."
 
           # Copy SUSFS patches
